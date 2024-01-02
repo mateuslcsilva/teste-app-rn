@@ -7,23 +7,29 @@ const LOCATION_TRACKING = 'location-tracking';
 
 var l1;
 var l2;
-var location = '';
+var location = 'Não há localização para mostrar';
 
 function UserLocation(props) {
 
     const [locationStarted, setLocationStarted] = useState(false);
+    const [permission, setPermission] = useState('');
 
     const startLocationTracking = async () => {
-        await Location.startLocationUpdatesAsync(LOCATION_TRACKING, {
-            accuracy: Location.Accuracy.Highest,
-            timeInterval: 5000,
-            distanceInterval: 0,
-        });
-        const hasStarted = await Location.hasStartedLocationUpdatesAsync(
-            LOCATION_TRACKING
-        );
-        setLocationStarted(hasStarted);
-        console.log('tracking started?', hasStarted);
+        try{
+            await Location.startLocationUpdatesAsync(LOCATION_TRACKING, {
+                accuracy: Location.Accuracy.Highest,
+                timeInterval: 5000,
+                distanceInterval: 0,
+            });
+            const hasStarted = await Location.hasStartedLocationUpdatesAsync(
+                LOCATION_TRACKING
+            );
+            setLocationStarted(hasStarted);
+            console.log('tracking started?', hasStarted);
+        } catch(error){
+            setPermission(error);
+        }
+
     };
 
     useEffect(() => {
@@ -32,8 +38,10 @@ function UserLocation(props) {
             let resb = await Location.requestBackgroundPermissionsAsync();
             if (resf.status != 'granted' && resb.status !== 'granted') {
                 console.log('Permission to access location was denied');
+                setPermission('Permissão para acesso de localização negada')
             } else {
                 console.log('Permission to access location granted');
+                setPermission('Permissão para acesso de localização concedida')
             }
         };
         config();
@@ -70,6 +78,7 @@ function UserLocation(props) {
                   <Text style={styles.btnText}>Start Tracking</Text>
               </TouchableOpacity>
           }
+          <Text>{permission}</Text>
         </View>
     );
 }

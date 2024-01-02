@@ -119,6 +119,7 @@ export default function App() {
         };
 
     }, []);
+    
     const checkStatusAsync = async () => {
         const status = await BackgroundFetch.getStatusAsync();
         const isRegistered = await TaskManager.isTaskRegisteredAsync(BACKGROUND_FETCH_TASK);

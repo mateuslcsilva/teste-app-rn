@@ -5,7 +5,7 @@ import { Button, StyleSheet, Text, TouchableOpacity, View, Modal, Image } from '
 
 const AcessCamera = () => {
   const camRef = useRef(null);
-  const [imagePath, setImagePath] = useState();
+  const [image, setImage] = useState(null);
   const [type, setType] = useState(CameraType.back);
   const [permission, requestPermission] = Camera.useCameraPermissions();
 
@@ -20,8 +20,7 @@ const AcessCamera = () => {
   const takePicture = async () => {
     if (camRef) {
       const data = await camRef.current.takePictureAsync();
-      setImagePath(data.uri);
-      console.log('imagepath', imagePath);
+      setImage(data.uri);
     }
   }
 
@@ -38,21 +37,21 @@ const AcessCamera = () => {
           </TouchableOpacity>
         </View>
       </Camera>
-      {imagePath && 
+      {image != null && 
         <Modal
         animationType='slide'
         transparent={false}
-        visible={imagePath}
+        visible={image != null}
         >
           <View style={{flex: 1, justifyContent: 'center', alignItems: 'center', margin: 20}}>
             <Image 
-            source={{uri: imagePath}}
+            source={{uri: image}}
             style={{width: '100%', height: 300, borderRadius: 20}}>
 
             </Image>
-            <TouchableOpacity style={{margin: 10}} onPress={setImagePath(null)}>
-              Tirar outra
-            </TouchableOpacity>
+            {<TouchableOpacity style={{margin: 10}} onPress={() => setImage(null)}>
+              <Text>Tirar outra</Text>
+            </TouchableOpacity>}
           </View>
         </Modal>
       }
