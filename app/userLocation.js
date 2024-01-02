@@ -7,8 +7,9 @@ const LOCATION_TRACKING = 'location-tracking';
 
 var l1;
 var l2;
+var location = '';
 
-function UserLocation() {
+function UserLocation(props) {
 
     const [locationStarted, setLocationStarted] = useState(false);
 
@@ -22,7 +23,6 @@ function UserLocation() {
             LOCATION_TRACKING
         );
         setLocationStarted(hasStarted);
-        /* registerBackgroundFetchAsync(); */
         console.log('tracking started?', hasStarted);
     };
 
@@ -37,6 +37,11 @@ function UserLocation() {
             }
         };
         config();
+        const timer = setInterval(() => {
+            props.setLocation(location)
+        }, 5000);
+
+        return () => clearTimeout(timer);
     }, []);
 
     const startLocation = () => {
@@ -46,7 +51,6 @@ function UserLocation() {
 
     const stopLocation = () => {
         setLocationStarted(false);
-        /* unregisterBackgroundFetchAsync(); */
         TaskManager.isTaskRegisteredAsync(LOCATION_TRACKING)
             .then((tracking) => {
                 if (tracking) {
@@ -88,31 +92,15 @@ TaskManager.defineTask(LOCATION_TRACKING, async ({ data, error }) => {
         return;
     }
     if (data) {
-        console.log(data);
         const { locations } = data;
         let lat = locations[0].coords.latitude;
         let long = locations[0].coords.longitude;
 
         l1 = lat;
         l2 = long;
-
-        console.log(
-            `${new Date(Date.now()).toLocaleString()}: ${lat},${long}`
-        );
+        location = `${new Date(Date.now()).toLocaleString()}: ${lat},${long}`;
     }
 });
-
-/* async function registerBackgroundFetchAsync() {
-    return BackgroundFetch.registerTaskAsync(LOCATION_TRACKING, {
-      minimumInterval: 60 * 1, // 15 minutes
-      stopOnTerminate: false, // android only,
-      startOnBoot: true, // android only
-    });
-  }
-
-  async function unregisterBackgroundFetchAsync() {
-    return BackgroundFetch.unregisterTaskAsync(LOCATION_TRACKING);
-  } */
   
 
 export default UserLocation;

@@ -1,6 +1,6 @@
-import {AcessCamera} from './acessCamera';
 import { useEffect, useState, useRef } from 'react';
-import { TouchableOpacity, StyleSheet, View, Text } from 'react-native';
+import { Pressable, TouchableOpacity, StyleSheet, View, Text } from 'react-native';
+import { Link } from 'expo-router';
 import UserLocation from './userLocation';
 import * as TaskManager from 'expo-task-manager';
 import * as BackgroundFetch from 'expo-background-fetch';
@@ -90,6 +90,7 @@ async function unregisterBackgroundFetchAsync() {
 
 
 export default function App() {
+    const [location, setLocation] = useState('Não há localização para mostrar');
     const [isRegistered, setIsRegistered] = useState(false);
     const [status, setStatus] = useState(null);
     const [expoPushToken, setExpoPushToken] = useState('');
@@ -107,19 +108,17 @@ export default function App() {
         responseListener.current = Notifications.addNotificationResponseReceivedListener(response => {
             console.log(response);
         });
-
         checkStatusAsync();
+        if(isRegistered) unregisterBackgroundFetchAsync();
+        registerBackgroundFetchAsync();
 
         return () => {
+            unregisterBackgroundFetchAsync();
             Notifications.removeNotificationSubscription(notificationListener.current);
             Notifications.removeNotificationSubscription(responseListener.current);
         };
-    }, []);
 
-    /*     useEffect(() => {
-            checkStatusAsync();
-        }, [])
-     */
+    }, []);
     const checkStatusAsync = async () => {
         const status = await BackgroundFetch.getStatusAsync();
         const isRegistered = await TaskManager.isTaskRegisteredAsync(BACKGROUND_FETCH_TASK);
@@ -139,12 +138,12 @@ export default function App() {
 
     return (
         <View style={styles.container}>
-            <UserLocation />
+            <UserLocation setLocation={setLocation} />
 
 
-            <TouchableOpacity onPress={toggleFetchTask}>
+{/*             <TouchableOpacity onPress={toggleFetchTask}>
                 <Text style={styles.btnText}>{isRegistered ? 'des-registrar background' : 'Registrar background'}</Text>
-            </TouchableOpacity>
+            </TouchableOpacity> */}
 
             <Text>
                 Background fetch status:{' '}
@@ -158,13 +157,16 @@ export default function App() {
                     {isRegistered ? BACKGROUND_FETCH_TASK : 'Not registered yet!'}
                 </Text>
             </Text>
-            {/* <Text>Your expo push token: {expoPushToken}</Text>
-            <View style={{ alignItems: 'center', justifyContent: 'center' }}>
-                <Text>Title: {notification && notification.request.content.title} </Text>
-                <Text>Body: {notification && notification.request.content.body}</Text>
-                <Text>Data: {notification && JSON.stringify(notification.request.content.data)}</Text>
-            </View> */}
-            <AcessCamera />
+            <Text>
+                Localização:{' '}
+                <Text>
+                    {location}
+                </Text>
+            </Text>
+            {/* <AcessCamera /> */}
+            <Link href="./acessCamera">
+                <Text style={styles.btnText}>Camera</Text>
+            </Link>
         </View>
     );
 }

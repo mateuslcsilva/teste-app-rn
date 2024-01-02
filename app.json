@@ -1,4 +1,4 @@
-{
+{  
   "expo": {
     "name": "teste",
     "slug": "teste",
@@ -28,6 +28,7 @@
       ],
       "package": "com.lcsilva.dev.teste"
     },
+    "scheme": "app-teste",
     "web": {
       "favicon": "./assets/favicon.png"
     },
