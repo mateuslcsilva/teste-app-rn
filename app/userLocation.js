@@ -15,21 +15,17 @@ function UserLocation(props) {
     const [permission, setPermission] = useState('');
 
     const startLocationTracking = async () => {
-        try{
-            await Location.startLocationUpdatesAsync(LOCATION_TRACKING, {
-                accuracy: Location.Accuracy.Highest,
-                timeInterval: 5000,
-                distanceInterval: 0,
-            });
-            const hasStarted = await Location.hasStartedLocationUpdatesAsync(
-                LOCATION_TRACKING
-            );
-            setLocationStarted(hasStarted);
-            console.log('tracking started?', hasStarted);
-        } catch(error){
-            setPermission(error);
-        }
-
+        await Location.startLocationUpdatesAsync(LOCATION_TRACKING, {
+            accuracy: Location.Accuracy.Highest,
+            timeInterval: 5000,
+            distanceInterval: 0,
+        });
+        const hasStarted = await Location.hasStartedLocationUpdatesAsync(
+            LOCATION_TRACKING
+        );
+        setLocationStarted(hasStarted);
+        console.log('tracking started?', hasStarted);
+        //setPermission(hasStarted);
     };
 
     useEffect(() => {
@@ -38,14 +34,7 @@ function UserLocation(props) {
             let resf = await Location.requestForegroundPermissionsAsync();
             let resb = await Location.requestBackgroundPermissionsAsync();
             if (resf.status != 'granted' && resb.status !== 'granted') {
-                return (
-                    <View>
-                        <Text>Permissão negada</Text>
-                        <TouchableOpacity onPress={getPermissions}>
-                            <Text style={styles.btnText}>Solicitar novamente</Text>
-                        </TouchableOpacity>
-                    </View>
-                )
+                alert('sem permissão')
             } else {
                 console.log('Permission to access location granted');
                 setPermission('Permissão para acesso de localização concedida')
@@ -58,14 +47,7 @@ function UserLocation(props) {
 
         return () => clearTimeout(timer);
     }, []);
-
-    const getPermissions = async () => {
-        let resf = await Location.requestForegroundPermissionsAsync();
-        let resb = await Location.requestBackgroundPermissionsAsync();
-    }
-
     const startLocation = () => {
-      
         startLocationTracking();
     }
 
@@ -81,7 +63,6 @@ function UserLocation(props) {
 
     return (
         <View>
-          <Text>{permission}</Text>
           {locationStarted ?
               <TouchableOpacity onPress={stopLocation}>
                   <Text style={styles.btnText}>Stop Tracking</Text>
@@ -109,7 +90,7 @@ const styles = StyleSheet.create({
 
 TaskManager.defineTask(LOCATION_TRACKING, async ({ data, error }) => {
     if (error) {
-        console.log('LOCATION_TRACKING task ERROR:', error);
+        alert('LOCATION_TRACKING task ERROR:', error);
         return;
     }
     if (data) {
