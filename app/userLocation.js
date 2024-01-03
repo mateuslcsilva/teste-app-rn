@@ -34,11 +34,18 @@ function UserLocation(props) {
 
     useEffect(() => {
         const config = async () => {
+            setPermission('Entrou na config aqui hein')
             let resf = await Location.requestForegroundPermissionsAsync();
             let resb = await Location.requestBackgroundPermissionsAsync();
             if (resf.status != 'granted' && resb.status !== 'granted') {
-                console.log('Permission to access location was denied');
-                setPermission('Permissão para acesso de localização negada')
+                return (
+                    <View>
+                        <Text>Permissão negada</Text>
+                        <TouchableOpacity onPress={getPermissions}>
+                            <Text style={styles.btnText}>Solicitar novamente</Text>
+                        </TouchableOpacity>
+                    </View>
+                )
             } else {
                 console.log('Permission to access location granted');
                 setPermission('Permissão para acesso de localização concedida')
@@ -51,6 +58,11 @@ function UserLocation(props) {
 
         return () => clearTimeout(timer);
     }, []);
+
+    const getPermissions = async () => {
+        let resf = await Location.requestForegroundPermissionsAsync();
+        let resb = await Location.requestBackgroundPermissionsAsync();
+    }
 
     const startLocation = () => {
       
@@ -69,6 +81,7 @@ function UserLocation(props) {
 
     return (
         <View>
+          <Text>{permission}</Text>
           {locationStarted ?
               <TouchableOpacity onPress={stopLocation}>
                   <Text style={styles.btnText}>Stop Tracking</Text>
@@ -78,7 +91,6 @@ function UserLocation(props) {
                   <Text style={styles.btnText}>Start Tracking</Text>
               </TouchableOpacity>
           }
-          <Text>{permission}</Text>
         </View>
     );
 }
