@@ -1,7 +1,7 @@
-{
+{  
   "expo": {
-    "name": "app-teste-rn-js",
-    "slug": "app-teste-rn-js",
+    "name": "teste",
+    "slug": "teste",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -21,10 +21,29 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO"
+      ],
+      "package": "com.lcsilva.dev.teste"
     },
+    "scheme": "app-teste",
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow teste to access your camera."
+        }
+      ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "6647a439-18ac-4a64-8305-f9b52761575a"
+      }
     }
   }
 }
