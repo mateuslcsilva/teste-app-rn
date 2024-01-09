@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from 'react';
 import { Pressable, TouchableOpacity, StyleSheet, View, Text } from 'react-native';
 import { Link } from 'expo-router';
 import UserLocation from './userLocation';
+import * as Location from 'expo-location';
 import * as TaskManager from 'expo-task-manager';
 import * as BackgroundFetch from 'expo-background-fetch';
 import * as Device from 'expo-device';
@@ -15,7 +16,7 @@ Notifications.setNotificationHandler({
     }),
 });
 
-async function schedulePushNotification() {
+/* async function schedulePushNotification() {
     await Notifications.scheduleNotificationAsync({
         content: {
             title: "Essa notificação foi enviada com o app em segundo plano! 📬",
@@ -24,7 +25,7 @@ async function schedulePushNotification() {
         },
         trigger: null,
     });
-}
+} */
 
 async function registerForPushNotificationsAsync() {
     let token;
@@ -46,7 +47,7 @@ async function registerForPushNotificationsAsync() {
             finalStatus = status;
         }
         if (finalStatus !== 'granted') {
-            alert('Failed to get push token for push notification!');
+            alert('Failed to get push token for push notification!'); 
             return;
         }
         // Learn more about projectId:
@@ -65,6 +66,26 @@ const BACKGROUND_FETCH_TASK = 'background-fetch';
 TaskManager.defineTask(BACKGROUND_FETCH_TASK, async () => {
     console.log('Ação rodando em background');
     console.log(`Rodou em background em: ${new Date(Date.now()).toLocaleString()}`);
+    let location = await Location.getCurrentPositionAsync({});
+    console.log(`lat: ${location.coords.latitude}, long: ${location.coords.longitude}`);
+    const requestOptions = { 
+        method: 'POST', 
+        headers: { 'Content-Type': 'application/json' }, 
+        body: JSON.stringify({ texto: `lat: ${location.coords.latitude}, long: ${location.coords.longitude}` }) 
+    }; 
+    await fetch('https://testes.unionsystem.com.br/teste_api/v1/endpoint.php', requestOptions)
+    .then(res => res.json())
+    .then(res => console.log(res));
+    async function schedulePushNotification() {
+        await Notifications.scheduleNotificationAsync({
+            content: {
+                title: "Essa notificação foi enviada com o app em segundo plano com sua localização! 📬",
+                body: `lat: ${location.coords.latitude}, long: ${location.coords.longitude}`,
+                data: { data: 'goes here' },
+            },
+            trigger: null,
+        });
+    }
     await schedulePushNotification();
     // Be sure to return the successful result type!
     return BackgroundFetch.BackgroundFetchResult.NewData;
@@ -108,6 +129,17 @@ export default function App() {
         responseListener.current = Notifications.addNotificationResponseReceivedListener(response => {
             console.log(response);
         });
+        const config = async () => {
+            let resf = await Location.requestForegroundPermissionsAsync();
+            let resb = await Location.requestBackgroundPermissionsAsync();
+            if (resf.status != 'granted' && resb.status !== 'granted') {
+                alert('sem permissão')
+            } else {
+                console.log('Permission to access location granted');
+                setLocation('Permissão para acesso de localização concedida')
+            }
+        };
+        config();
         checkStatusAsync();
         if(isRegistered) unregisterBackgroundFetchAsync();
         registerBackgroundFetchAsync();
@@ -139,7 +171,7 @@ export default function App() {
 
     return (
         <View style={styles.container}>
-            <UserLocation setLocation={setLocation} />
+            {/* <UserLocation setLocation={setLocation} /> */}
 
 
 {/*             <TouchableOpacity onPress={toggleFetchTask}>

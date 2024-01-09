@@ -38,6 +38,12 @@
         {
           "cameraPermission": "Allow teste to access your camera."
         }
+      ],
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Allow teste to use your location."
+        }
       ]
     ],
     "extra": {
