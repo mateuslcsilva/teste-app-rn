@@ -47,7 +47,7 @@ async function registerForPushNotificationsAsync() {
             finalStatus = status;
         }
         if (finalStatus !== 'granted') {
-            alert('Failed to get push token for push notification!'); 
+            alert('Failed to get push token for push notification!');
             return;
         }
         // Learn more about projectId:
@@ -60,6 +60,7 @@ async function registerForPushNotificationsAsync() {
 }
 
 const BACKGROUND_FETCH_TASK = 'background-fetch';
+const BACKGROUND_LOCATION_ASYNC = 'async-location';
 
 // 1. Define the task by providing a name and the function that should be executed
 // Note: This needs to be called in the global scope (e.g outside of your React components)
@@ -68,14 +69,14 @@ TaskManager.defineTask(BACKGROUND_FETCH_TASK, async () => {
     console.log(`Rodou em background em: ${new Date(Date.now()).toLocaleString()}`);
     let location = await Location.getCurrentPositionAsync({});
     console.log(`lat: ${location.coords.latitude}, long: ${location.coords.longitude}`);
-    const requestOptions = { 
-        method: 'POST', 
-        headers: { 'Content-Type': 'application/json' }, 
-        body: JSON.stringify({ texto: `lat: ${location.coords.latitude}, long: ${location.coords.longitude}` }) 
-    }; 
+    const requestOptions = {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ texto: `BACKGROUND_FETCH: lat: ${location.coords.latitude}, long: ${location.coords.longitude}` })
+    };
     await fetch('https://testes.unionsystem.com.br/teste_api/v1/endpoint.php', requestOptions)
-    .then(res => res.json())
-    .then(res => console.log(res));
+        .then(res => res.json())
+        .then(res => console.log(res));
     async function schedulePushNotification() {
         await Notifications.scheduleNotificationAsync({
             content: {
@@ -90,23 +91,42 @@ TaskManager.defineTask(BACKGROUND_FETCH_TASK, async () => {
     return BackgroundFetch.BackgroundFetchResult.NewData;
 });
 
-/* TaskManager.defineTask(BACKGROUND_FETCH_TASK, ({ data, error }) => {
+TaskManager.defineTask(BACKGROUND_LOCATION_ASYNC, async ({ data, error }) => {
     if (error) {
-      console.log("Error bg", error)
-      return;
+        console.log("Error bg", error)
+        return;
     }
     if (data) {
-      const { locations } = data;
-      console.log("BGGGG->", locations[0].coords.latitude, locations[0].coords.longitude);
+        const { locations } = data;
+        console.log("BGGGG->", locations[0].coords.latitude, locations[0].coords.longitude);
+        const requestOptions = {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ texto: `BACKGROUND_LOCATION_ASYNC: lat: ${locations[0].coords.latitude}, long: ${locations[0].coords.longitude}` })
+        };
+        await fetch('https://testes.unionsystem.com.br/teste_api/v1/endpoint.php', requestOptions)
+            .then(res => res.json())
+            .then(res => console.log(res));
+        async function schedulePushNotification() {
+            await Notifications.scheduleNotificationAsync({
+                content: {
+                    title: "Essa notificação foi enviada com o app em segundo plano com sua localização! 📬",
+                    body: `lat: ${locations[0].coords.latitude}, long: ${locations[0].coords.longitude}`,
+                    data: { data: 'goes here' },
+                },
+                trigger: null,
+            });
+        }
+        await schedulePushNotification();
     }
-  }); */
+});
 
 // 2. Register the task at some point in your app by providing the same name,
 // and some configuration options for how the background fetch should behave
 // Note: This does NOT need to be in the global scope and CAN be used in your React components!
 async function registerBackgroundFetchAsync() {
     return BackgroundFetch.registerTaskAsync(BACKGROUND_FETCH_TASK, {
-        minimumInterval: 60 * 0.2, // 15 minutes
+        minimumInterval: 60, // 15 minutes
         stopOnTerminate: false, // android only,
         startOnBoot: true, // android only
     });
@@ -141,20 +161,20 @@ export default function App() {
         });
         const config = async () => {
             let resf = await Location.requestForegroundPermissionsAsync();
-            if(resf.status == 'granted'){
+            if (resf.status == 'granted') {
                 let resb = await Location.requestBackgroundPermissionsAsync();
                 alert(JSON.stringify(resb));
-                if(resb.status == 'granted'){
+                if (resb.status == 'granted') {
                     setLocation('Permissão para acesso de localização concedida')
-                    /* await Location.startLocationUpdatesAsync(BACKGROUND_FETCH_TASK, {
+                    await Location.startLocationUpdatesAsync(BACKGROUND_LOCATION_ASYNC, {
                         accuracy: Location.Accuracy.Balanced,
-                        timeInterval: 3000,
+                        timeInterval: 60 * 1000,
                         distanceInterval: 1,
                         foregroundService: {
-                          notificationTitle: 'Live Tracker',
-                          notificationBody: 'Live Tracker is on.'
+                            notificationTitle: 'Pegando sua localização pelo BACKGROUND_LOCATION_ASYNC',
+                            notificationBody: 'Pegando sua localização pelo BACKGROUND_LOCATION_ASYNC'
                         }
-                      }); */
+                    });
                 } else {
                     alert('sem permissão background')
                 }
@@ -180,7 +200,7 @@ export default function App() {
         };
 
     }, []);
-    
+
     const checkStatusAsync = async () => {
         const status = await BackgroundFetch.getStatusAsync();
         const isRegistered = await TaskManager.isTaskRegisteredAsync(BACKGROUND_FETCH_TASK);
@@ -203,7 +223,7 @@ export default function App() {
             {/* <UserLocation setLocation={setLocation} /> */}
 
 
-{/*             <TouchableOpacity onPress={toggleFetchTask}>
+            {/*             <TouchableOpacity onPress={toggleFetchTask}>
                 <Text style={styles.btnText}>{isRegistered ? 'des-registrar background' : 'Registrar background'}</Text>
             </TouchableOpacity> */}
 
