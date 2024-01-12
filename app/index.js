@@ -63,7 +63,7 @@ const BACKGROUND_FETCH_TASK = 'background-fetch';
 
 // 1. Define the task by providing a name and the function that should be executed
 // Note: This needs to be called in the global scope (e.g outside of your React components)
-/* TaskManager.defineTask(BACKGROUND_FETCH_TASK, async () => {
+TaskManager.defineTask(BACKGROUND_FETCH_TASK, async () => {
     console.log('Ação rodando em background');
     console.log(`Rodou em background em: ${new Date(Date.now()).toLocaleString()}`);
     let location = await Location.getCurrentPositionAsync({});
@@ -88,9 +88,9 @@ const BACKGROUND_FETCH_TASK = 'background-fetch';
     }
     await schedulePushNotification();
     return BackgroundFetch.BackgroundFetchResult.NewData;
-}); */
+});
 
-TaskManager.defineTask(BACKGROUND_FETCH_TASK, ({ data, error }) => {
+/* TaskManager.defineTask(BACKGROUND_FETCH_TASK, ({ data, error }) => {
     if (error) {
       console.log("Error bg", error)
       return;
@@ -99,7 +99,7 @@ TaskManager.defineTask(BACKGROUND_FETCH_TASK, ({ data, error }) => {
       const { locations } = data;
       console.log("BGGGG->", locations[0].coords.latitude, locations[0].coords.longitude);
     }
-  });
+  }); */
 
 // 2. Register the task at some point in your app by providing the same name,
 // and some configuration options for how the background fetch should behave
@@ -143,9 +143,10 @@ export default function App() {
             let resf = await Location.requestForegroundPermissionsAsync();
             if(resf.status == 'granted'){
                 let resb = await Location.requestBackgroundPermissionsAsync();
+                alert(JSON.stringify(resb));
                 if(resb.status == 'granted'){
                     setLocation('Permissão para acesso de localização concedida')
-                    await Location.startLocationUpdatesAsync(BACKGROUND_FETCH_TASK, {
+                    /* await Location.startLocationUpdatesAsync(BACKGROUND_FETCH_TASK, {
                         accuracy: Location.Accuracy.Balanced,
                         timeInterval: 3000,
                         distanceInterval: 1,
@@ -153,7 +154,7 @@ export default function App() {
                           notificationTitle: 'Live Tracker',
                           notificationBody: 'Live Tracker is on.'
                         }
-                      });
+                      }); */
                 } else {
                     alert('sem permissão background')
                 }
@@ -166,13 +167,13 @@ export default function App() {
         if(isRegistered) unregisterBackgroundFetchAsync();
         registerBackgroundFetchAsync();
 
-        /* const interval = setInterval(async () => {
+        const interval = setInterval(async () => {
             let location = await Location.getCurrentPositionAsync({});
             console.log(`lat: ${location.coords.latitude}, long: ${location.coords.longitude}`);
-        }, 2500); */
+        }, 2500);
 
         return () => {
-            /* clearInterval(interval); */
+            clearInterval(interval);
             unregisterBackgroundFetchAsync();
             Notifications.removeNotificationSubscription(notificationListener.current);
             Notifications.removeNotificationSubscription(responseListener.current);
@@ -224,7 +225,6 @@ export default function App() {
                     {location}
                 </Text>
             </Text>
-            {/* <AcessCamera /> */}
             <Link href="./acessCamera">
                 <Text style={styles.btnText}>Camera</Text>
             </Link>
