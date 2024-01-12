@@ -1,7 +1,7 @@
 {  
   "expo": {
-    "name": "teste",
-    "slug": "teste",
+    "name": "Teste de Migração TemEntrega",
+    "slug": "Teste de Migração TemEntrega",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -42,7 +42,7 @@
       [
         "expo-location",
         {
-          "locationAlwaysAndWhenInUsePermission": "Allow teste to use your location."
+          "locationAlwaysAndWhenInUsePermission": "Allow $(PRODUCT_NAME) to use your location."
         }
       ]
     ],

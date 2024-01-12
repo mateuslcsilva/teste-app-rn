@@ -63,7 +63,7 @@ const BACKGROUND_FETCH_TASK = 'background-fetch';
 
 // 1. Define the task by providing a name and the function that should be executed
 // Note: This needs to be called in the global scope (e.g outside of your React components)
-TaskManager.defineTask(BACKGROUND_FETCH_TASK, async () => {
+/* TaskManager.defineTask(BACKGROUND_FETCH_TASK, async () => {
     console.log('Ação rodando em background');
     console.log(`Rodou em background em: ${new Date(Date.now()).toLocaleString()}`);
     let location = await Location.getCurrentPositionAsync({});
@@ -87,9 +87,19 @@ TaskManager.defineTask(BACKGROUND_FETCH_TASK, async () => {
         });
     }
     await schedulePushNotification();
-    // Be sure to return the successful result type!
     return BackgroundFetch.BackgroundFetchResult.NewData;
-});
+}); */
+
+TaskManager.defineTask(BACKGROUND_FETCH_TASK, ({ data, error }) => {
+    if (error) {
+      console.log("Error bg", error)
+      return;
+    }
+    if (data) {
+      const { locations } = data;
+      console.log("BGGGG->", locations[0].coords.latitude, locations[0].coords.longitude);
+    }
+  });
 
 // 2. Register the task at some point in your app by providing the same name,
 // and some configuration options for how the background fetch should behave
@@ -131,12 +141,24 @@ export default function App() {
         });
         const config = async () => {
             let resf = await Location.requestForegroundPermissionsAsync();
-            let resb = await Location.requestBackgroundPermissionsAsync();
-            if (resf.status != 'granted' && resb.status !== 'granted') {
-                alert('sem permissão')
+            if(resf.status == 'granted'){
+                let resb = await Location.requestBackgroundPermissionsAsync();
+                if(resb.status == 'granted'){
+                    setLocation('Permissão para acesso de localização concedida')
+                    await Location.startLocationUpdatesAsync(BACKGROUND_FETCH_TASK, {
+                        accuracy: Location.Accuracy.Balanced,
+                        timeInterval: 3000,
+                        distanceInterval: 1,
+                        foregroundService: {
+                          notificationTitle: 'Live Tracker',
+                          notificationBody: 'Live Tracker is on.'
+                        }
+                      });
+                } else {
+                    alert('sem permissão background')
+                }
             } else {
-                console.log('Permission to access location granted');
-                setLocation('Permissão para acesso de localização concedida')
+                alert('sem permissão foregroud')
             }
         };
         config();
@@ -144,7 +166,13 @@ export default function App() {
         if(isRegistered) unregisterBackgroundFetchAsync();
         registerBackgroundFetchAsync();
 
+        /* const interval = setInterval(async () => {
+            let location = await Location.getCurrentPositionAsync({});
+            console.log(`lat: ${location.coords.latitude}, long: ${location.coords.longitude}`);
+        }, 2500); */
+
         return () => {
+            /* clearInterval(interval); */
             unregisterBackgroundFetchAsync();
             Notifications.removeNotificationSubscription(notificationListener.current);
             Notifications.removeNotificationSubscription(responseListener.current);
